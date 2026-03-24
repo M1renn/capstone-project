@@ -67,11 +67,13 @@ graph TB
     style FB fill:#ffe0b2,stroke:#e65100,stroke-width:2px
 Sequence Diagram
 
-<img width="4560" height="5043" alt="sequance diag" src="https://github.com/user-attachments/assets/5271f0ed-9cfe-447d-afe7-fe509bb8a201" />
+<img width="4560" height="5043" alt="sequance diag" src="https://github.com/user-attachments/assets/7d07e808-a010-4357-b134-d7e5bc075ec0" />
+
 
 Integration Diagram
 
-<img width="7006" height="2184" alt="integration diag" src="https://github.com/user-attachments/assets/24e94fc9-169c-4383-a536-96d56c44c727" />
+<img width="7006" height="2184" alt="integration diag" src="https://github.com/user-attachments/assets/8f676658-1e62-4347-8c33-b9a213c84874" />
+
 
 Business Flow
 Happy Path
