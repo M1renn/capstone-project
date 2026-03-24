@@ -33,48 +33,11 @@ Node-RED acts as the single entry point for all learning enrollment processes, m
 
 ### System Architecture Diagram
 
-```mermaid
-graph TB
-    Client[Student Client] --> NR[Node-RED Orchestrator<br/>Port 1880]
-    
-    subgraph "E-Learning Services"
-        ES[Enrollment Service<br/>:3001]
-        PS[Payment Service<br/>:3002]
-        PRS[Progress Service<br/>:3003]
-        CS[Certificate Service<br/>:3004]
-    end
-    
-    subgraph "Resilience Layer"
-        CB[Circuit Breaker]
-        RT[Retry with Backoff]
-        FB[Fallback Handler]
-        AU[Audit Logger]
-    end
-    
-    NR --> ES
-    NR --> PS
-    NR --> PRS
-    NR --> CS
-    
-    NR --> CB
-    NR --> RT
-    NR --> FB
-    NR --> AU
-    
-    style NR fill:#e1f5fe,stroke:#01579b,stroke-width:3px
-    style CB fill:#ffccbc,stroke:#bf360c,stroke-width:2px
-    style RT fill:#ffccbc,stroke:#bf360c,stroke-width:2px
-    style FB fill:#ffe0b2,stroke:#e65100,stroke-width:2px
 Sequence Diagram
-
-<img width="974" height="1078" alt="image" src="https://github.com/user-attachments/assets/b9421990-b6fa-4c57-a8ad-d323a0eca928" />
-
-
+<img width="974" height="1078" alt="image" src="https://github.com/user-attachments/assets/d1c4119a-3d7d-4078-8dea-8aa639ae44d0" />
 
 Integration Diagram
-
-<img width="974" height="304" alt="image" src="https://github.com/user-attachments/assets/3f3f79e7-40c3-46a2-9932-4a14a9a20367" />
-
+<img width="974" height="304" alt="image" src="https://github.com/user-attachments/assets/18d53e27-8d51-443d-b7a3-14a38dd16886" />
 
 Business Flow
 Happy Path
@@ -373,7 +336,25 @@ Progress Service	Node.js / Express	3003	Course progress tracking
 Certificate Service	Node.js / Express	3004	Certificate generation & delivery
 Network Architecture
 text
-
+┌─────────────────────────────────────────────────────────────────┐
+│                     Docker Network                              │
+│                    (elearning-network)                          │
+│                                                                 │
+│  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐   │
+│  │   Node-RED     │  │   Enrollment   │  │    Payment     │   │
+│  │   Port 1880    │◄─┤   Port 3001    │  │   Port 3002    │   │
+│  │   Gateway      │  │   Service      │  │   Service      │   │
+│  └────────────────┘  └────────────────┘  └────────────────┘   │
+│         │                  │                   │                │
+│         │                  │                   │                │
+│         ▼                  ▼                   ▼                │
+│  ┌────────────────┐  ┌────────────────┐                       │
+│  │   Progress     │  │  Certificate   │                       │
+│  │   Port 3003    │  │   Port 3004    │                       │
+│  │   Service      │  │   Service      │                       │
+│  └────────────────┘  └────────────────┘                       │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 Integration Style
 Synchronous HTTP communication for request-response pattern
 
@@ -517,3 +498,7 @@ Production-like microservice orchestration with Node-RED
 Async processing for non-critical operations
 
 The solution provides a robust, fault-tolerant integration platform suitable for enterprise e-learning applications, with clear observability and graceful degradation under failure conditions.
+
+    style CB fill:#ffccbc,stroke:#bf360c,stroke-width:2px
+    style RT fill:#ffccbc,stroke:#bf360c,stroke-width:2px
+    style FB fill:#ffe0b2,stroke:#e65100,stroke-width:2px
