@@ -1,0 +1,69 @@
+version: "3.8"
+
+services:
+
+  nodered:
+    build:
+      context: .
+      dockerfile: Dockerfile.nodered
+    ports:
+      - "1880:1880"
+    environment:
+      ORDER_URL: http://order-service:3001
+      PAYMENT_URL: http://payment-service:3002
+      INVENTORY_URL: http://inventory-service:3003
+      NOTIFICATION_URL: http://notification-service:3004
+    volumes:
+      - nodered-data:/data
+    networks:
+      - eai-network
+    depends_on:
+      - order-service
+      - payment-service
+      - inventory-service
+      - notification-service
+
+  order-service:
+    build: ./order-service
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+    networks:
+      - eai-network
+
+  payment-service:
+    build: ./payment-service
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      PAYMENT_FAIL_MODE: never
+    networks:
+      - eai-network
+
+  inventory-service:
+    build: ./inventory-service
+    ports:
+      - "3003:3003"
+    environment:
+      PORT: 3003
+      INVENTORY_FAIL_MODE: never
+    networks:
+      - eai-network
+
+  notification-service:
+    build: ./notification-service
+    ports:
+      - "3004:3004"
+    environment:
+      PORT: 3004
+    networks:
+      - eai-network
+
+networks:
+  eai-network:
+    driver: bridge
+
+volumes:
+  nodered-data:
