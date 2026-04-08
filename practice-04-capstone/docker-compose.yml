@@ -13,8 +13,9 @@ services:
       PAYMENT_URL: http://payment-service:3002
       INVENTORY_URL: http://inventory-service:3003
       NOTIFICATION_URL: http://notification-service:3004
+      FLOWS: flows.json
     volumes:
-      - nodered-data:/data
+      - ./node-red:/data
     networks:
       - eai-network
     depends_on:
@@ -64,6 +65,3 @@ services:
 networks:
   eai-network:
     driver: bridge
-
-volumes:
-  nodered-data:
