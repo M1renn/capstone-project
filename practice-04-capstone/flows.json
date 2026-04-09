@@ -1,0 +1,280 @@
+[
+    {
+        "id": "flow1",
+        "type": "tab",
+        "label": "Orchestration",
+        "disabled": false
+    },
+    {
+        "id": "in1",
+        "type": "http in",
+        "z": "flow1",
+        "name": "POST /order",
+        "url": "/order",
+        "method": "post",
+        "x": 1170,
+        "y": 580,
+        "wires": [
+            [
+                "init"
+            ]
+        ]
+    },
+    {
+        "id": "init",
+        "type": "function",
+        "z": "flow1",
+        "name": "Init",
+        "func": "msg.correlationId = Date.now() + '-' + Math.random();\nmsg.trace = [];\nmsg.payload.correlationId = msg.correlationId;\nreturn msg;",
+        "outputs": 1,
+        "x": 1350,
+        "y": 580,
+        "wires": [
+            [
+                "orderReq"
+            ]
+        ]
+    },
+    {
+        "id": "orderReq",
+        "type": "http request",
+        "z": "flow1",
+        "name": "Create Order",
+        "method": "POST",
+        "ret": "obj",
+        "url": "http://order-service:3001/orders",
+        "x": 1530,
+        "y": 580,
+        "wires": [
+            [
+                "orderTrace"
+            ]
+        ]
+    },
+    {
+        "id": "orderTrace",
+        "type": "function",
+        "z": "flow1",
+        "name": "Trace Order",
+        "func": "msg.orderId = msg.payload.orderId;\nmsg.trace.push({step:'order',status:'success'});\nreturn msg;",
+        "outputs": 1,
+        "x": 130,
+        "y": 500,
+        "wires": [
+            [
+                "paymentReq"
+            ]
+        ]
+    },
+    {
+        "id": "paymentReq",
+        "type": "http request",
+        "z": "flow1",
+        "name": "Payment",
+        "method": "POST",
+        "ret": "obj",
+        "url": "http://payment-service:3002/payment/authorize",
+        "x": 300,
+        "y": 500,
+        "wires": [
+            [
+                "paymentSwitch"
+            ]
+        ]
+    },
+    {
+        "id": "paymentSwitch",
+        "type": "switch",
+        "z": "flow1",
+        "name": "Payment OK?",
+        "property": "payload.status",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "authorized"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "outputs": 1,
+        "x": 480,
+        "y": 500,
+        "wires": [
+            [
+                "paymentOk"
+            ]
+        ]
+    },
+    {
+        "id": "paymentFail",
+        "type": "function",
+        "z": "flow1",
+        "name": "Payment Failed",
+        "func": "msg.trace.push({step:'payment',status:'failed'});\nmsg.payload={orderId:msg.orderId,correlationId:msg.correlationId,status:'failed',trace:msg.trace};\nreturn msg;",
+        "outputs": 1,
+        "x": 1340,
+        "y": 380,
+        "wires": [
+            [
+                "response"
+            ]
+        ]
+    },
+    {
+        "id": "paymentOk",
+        "type": "function",
+        "z": "flow1",
+        "name": "Payment OK",
+        "func": "msg.trace.push({step:'payment',status:'success'});\nreturn msg;",
+        "outputs": 1,
+        "x": 670,
+        "y": 500,
+        "wires": [
+            [
+                "inventoryReq"
+            ]
+        ]
+    },
+    {
+        "id": "inventoryReq",
+        "type": "http request",
+        "z": "flow1",
+        "name": "Inventory",
+        "method": "POST",
+        "ret": "obj",
+        "url": "http://inventory-service:3003/inventory/reserve",
+        "x": 840,
+        "y": 500,
+        "wires": [
+            [
+                "inventorySwitch"
+            ]
+        ]
+    },
+    {
+        "id": "inventorySwitch",
+        "type": "switch",
+        "z": "flow1",
+        "name": "Inventory OK?",
+        "property": "payload.status",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "reserved"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "outputs": 1,
+        "x": 1020,
+        "y": 500,
+        "wires": [
+            [
+                "inventoryOk"
+            ]
+        ]
+    },
+    {
+        "id": "inventoryFail",
+        "type": "function",
+        "z": "flow1",
+        "name": "Inventory Fail",
+        "func": "msg.trace.push({step:'inventory',status:'failed'});\nreturn msg;",
+        "outputs": 1,
+        "x": 1140,
+        "y": 260,
+        "wires": [
+            [
+                "refund"
+            ]
+        ]
+    },
+    {
+        "id": "refund",
+        "type": "http request",
+        "z": "flow1",
+        "name": "Refund",
+        "method": "POST",
+        "ret": "obj",
+        "url": "http://payment-service:3002/payment/refund",
+        "x": 1300,
+        "y": 260,
+        "wires": [
+            [
+                "refundTrace"
+            ]
+        ]
+    },
+    {
+        "id": "refundTrace",
+        "type": "function",
+        "z": "flow1",
+        "name": "Refund Trace",
+        "func": "msg.trace.push({step:'compensation:payment-refund',status:'success'});\nmsg.payload={orderId:msg.orderId,correlationId:msg.correlationId,status:'compensated',trace:msg.trace};\nreturn msg;",
+        "outputs": 1,
+        "x": 1500,
+        "y": 260,
+        "wires": [
+            [
+                "response"
+            ]
+        ]
+    },
+    {
+        "id": "inventoryOk",
+        "type": "function",
+        "z": "flow1",
+        "name": "Inventory OK",
+        "func": "msg.trace.push({step:'inventory',status:'success'});\nreturn msg;",
+        "outputs": 1,
+        "x": 1210,
+        "y": 500,
+        "wires": [
+            [
+                "notify"
+            ]
+        ]
+    },
+    {
+        "id": "notify",
+        "type": "http request",
+        "z": "flow1",
+        "name": "Notify",
+        "method": "POST",
+        "ret": "obj",
+        "url": "http://notification-service:3004/notification/send",
+        "x": 1370,
+        "y": 500,
+        "wires": [
+            [
+                "success"
+            ]
+        ]
+    },
+    {
+        "id": "success",
+        "type": "function",
+        "z": "flow1",
+        "name": "Success",
+        "func": "msg.trace.push({step:'notification',status:'success'});\nmsg.payload={orderId:msg.orderId,correlationId:msg.correlationId,status:'completed',trace:msg.trace};\nreturn msg;",
+        "outputs": 1,
+        "x": 1540,
+        "y": 500,
+        "wires": [
+            [
+                "response"
+            ]
+        ]
+    },
+    {
+        "id": "response",
+        "type": "http response",
+        "z": "flow1",
+        "name": "",
+        "x": 1570,
+        "y": 380,
+        "wires": []
+    }
+]
